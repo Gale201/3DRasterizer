@@ -1,0 +1,72 @@
+#include "camera.h"
+
+static float speed = 3.0f;
+static float sensitivity = 0.002;
+static float pitchLimit = 1.5f;
+
+Vec3 CameraForward(Camera* cam)
+{
+	return Vec3Normalize((Vec3) {
+		cosf(-cam->pitch) * sinf(cam->yaw),
+		sinf(-cam->pitch),
+		cosf(-cam->pitch) * cosf(cam->yaw)
+	});
+}
+
+Vec3 CameraRight(Camera* cam)
+{
+	Vec3 forward = CameraForward(cam);
+	return Vec3Normalize(Vec3Cross((Vec3) { 0, 1, 0 }, forward));
+}
+
+Vec3 CameraUp(Camera* cam)
+{
+	Vec3 forward = CameraForward(cam);
+	Vec3 right = CameraRight(cam);
+	return Vec3Cross(forward, right);
+}
+
+void UpdateCamera(float deltaTime, Camera *cam, const uint8_t *keys, int mouseDX, int mouseDY)
+{
+	if (keys[SDL_SCANCODE_W]) cam->position = Vec3Add(cam->position, Vec3Scale(CameraForward(cam), speed * deltaTime));
+	if (keys[SDL_SCANCODE_S]) cam->position = Vec3Sub(cam->position, Vec3Scale(CameraForward(cam), speed * deltaTime));
+	if (keys[SDL_SCANCODE_A]) cam->position = Vec3Sub(cam->position, Vec3Scale(CameraRight(cam), speed * deltaTime));
+	if (keys[SDL_SCANCODE_D]) cam->position = Vec3Add(cam->position, Vec3Scale(CameraRight(cam), speed * deltaTime));
+	if (keys[SDL_SCANCODE_SPACE]) cam->position = Vec3Add(cam->position, Vec3Scale((Vec3) { 0, 1, 0}, speed * deltaTime));
+	if (keys[SDL_SCANCODE_LSHIFT]) cam->position = Vec3Sub(cam->position, Vec3Scale((Vec3) { 0, 1, 0}, speed * deltaTime));
+
+	cam->yaw += mouseDX * sensitivity;
+	cam->pitch += mouseDY * sensitivity;
+
+	if (cam->pitch > pitchLimit) cam->pitch = pitchLimit;
+	if (cam->pitch < -pitchLimit) cam->pitch = -pitchLimit;
+}
+
+Mat4 CameraGetViewMatrix(const Camera* cam)
+{
+	Mat4 rotYaw = Mat4RotateY(-cam->yaw);
+	Mat4 rotPitch = Mat4RotateX(-cam->pitch);
+
+	Mat4 rotation = Mat4Mul(rotPitch, rotYaw);
+
+	Mat4 translation = Mat4Translate(
+		-cam->position.x, 
+		-cam->position.y,
+	   	-cam->position.z
+	);
+
+	return Mat4Mul(rotation, translation);
+}
+
+Vec3 WorldToCameraView(Vec3 v, Camera cam)
+{
+	v.x -= cam.position.x;
+	v.y -= cam.position.y;
+	v.z -= cam.position.z;
+	
+	v = Vec3RotateX(v, -cam.pitch);
+	v = Vec3RotateY(v, -cam.yaw);
+
+	return v;
+}
+

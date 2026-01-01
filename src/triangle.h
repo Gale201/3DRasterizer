@@ -1,0 +1,27 @@
+#ifndef TRIANGLE_H
+#define TRIANGLE_H
+
+#include <math.h>
+
+#include "line.h"
+#include "math.h"
+
+void DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);
+
+void DrawFilledTriangleVertices(int x0, int y0, float z0, int x1, int y1, float z1, int x2, int y2, float z2, uint32_t color);
+void DrawFilledTriangle(Triangle t, uint32_t color);
+
+void SetTriangleVertex(Triangle *t, int index, Vec3 v);
+Vec3 GetTriangleVertex(Triangle t, int index);
+
+Triangle ProjectTriangle(Triangle t);
+
+int IsTriangleBackFacing(Triangle t);
+
+int ClipTriangleNear(Triangle t, Triangle out[2]);
+
+Vec3 ComputeTriangleNormal(Triangle t);
+
+void PrintTriangle(Triangle t);
+
+#endif

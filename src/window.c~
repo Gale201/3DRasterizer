@@ -1,0 +1,83 @@
+#include "window.h"
+
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static SDL_Texture* texture = NULL;
+static int width, height;
+static int relativeMouseModeOn = 1;
+
+void InitWindow(int w, int h)
+{
+	width = w;
+	height = h;
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	{
+		printf("Couldn't initialize SDL: %s\n", SDL_GetError());
+		return;
+	}
+
+	window = SDL_CreateWindow("3D Renderer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
+
+	if (!window)
+	{
+		printf("Failed to create the window.");
+		SDL_Quit();
+		return;
+	}
+
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	
+	if (!window)
+	{
+		printf("Failed to create the window.");
+		SDL_Quit();
+		return;
+	}
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
+void WindowCreateCanvas(void)
+{
+	texture = SDL_CreateTexture(
+		renderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		width,
+		height
+	);
+}
+
+void UpdateWindow(void)
+{
+	if (IsKeyJustPressed(SDL_SCANCODE_ESCAPE))
+	{
+		relativeMouseModeOn = !relativeMouseModeOn;
+		SDL_SetRelativeMouseMode(relativeMouseModeOn ? SDL_TRUE : SDL_FALSE);
+	}
+
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
+	SDL_GetRelativeMouseMode();
+	SDL_Delay(16);
+}
+
+void WindowRenderToCanvas(uint32_t* frameBuffer, size_t size)
+{
+	SDL_UpdateTexture(texture, NULL, frameBuffer, size);
+}
+
+void WindowDestroy(void)
+{
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
+
+SDL_Window* GetWindow(void)
+{
+	return window;
+}
