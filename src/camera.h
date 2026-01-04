@@ -12,7 +12,7 @@ typedef struct {
 	float pitch;
 } Camera;
 
-#define NEAR_PLANE 0.01f
+#define NEAR_PLANE 0.1f
 
 Vec3 CameraForward(Camera* cam);
 Vec3 CameraRight(Camera* cam);

@@ -6,11 +6,12 @@
 #include "mesh.h"
 #include "triangle.h"
 #include "camera.h"
+#include "texture.h"
 
 typedef struct {
 	Mesh *mesh;
 	Mat4 transform;
-	uint32_t color;
+	Texture texture;
 } RObject;
 
 void RendererInit(int width, int height, Camera* cam);
@@ -24,8 +25,9 @@ void DrawDepthPixel(int x, int y, float z, uint32_t color);
 
 uint32_t ShadeColor(uint32_t color, float intensity);
 uint32_t ComputeShadedColorForTriangle(Triangle t, Vec3 light, uint32_t color);
+uint32_t ComputeShadedColorForNormal(Vec3 normal, Vec3 light, uint32_t color);
 
-void RenderMesh(const Mesh* mesh, Mat4 model, uint32_t color);
+void RenderMesh(const Mesh* mesh, Mat4 model, Texture texture);
 void RenderObject(const RObject* obj);
 
 uint32_t* RendererGetFrameBuffer(void);

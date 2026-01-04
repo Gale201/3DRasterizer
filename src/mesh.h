@@ -4,7 +4,7 @@
 #include "math.h"
 
 typedef struct {
-	Vec3 *vertices;
+	Vertex *vertices;
 	int vertexCount;
 
 	int *indices;

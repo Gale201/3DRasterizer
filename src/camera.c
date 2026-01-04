@@ -28,6 +28,9 @@ Vec3 CameraUp(Camera* cam)
 
 void UpdateCamera(float deltaTime, Camera *cam, const uint8_t *keys, int mouseDX, int mouseDY)
 {
+	if (keys[SDL_SCANCODE_LCTRL]) speed = 6.0f;
+	else speed = 3.0f;
+
 	if (keys[SDL_SCANCODE_W]) cam->position = Vec3Add(cam->position, Vec3Scale(CameraForward(cam), speed * deltaTime));
 	if (keys[SDL_SCANCODE_S]) cam->position = Vec3Sub(cam->position, Vec3Scale(CameraForward(cam), speed * deltaTime));
 	if (keys[SDL_SCANCODE_A]) cam->position = Vec3Sub(cam->position, Vec3Scale(CameraRight(cam), speed * deltaTime));

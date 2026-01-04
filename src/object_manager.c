@@ -31,9 +31,9 @@ void AddRenderObject(RObject o)
 	renderObjects[robjsCount++] = o;
 }
 
-RObject CreateRenderObjectFromMesh(Mesh* mesh, Mat4 transform, uint32_t color)
+RObject CreateRenderObjectFromMesh(Mesh* mesh, Mat4 transform, Texture texture)
 {
-	return (RObject) { mesh, transform, color };
+	return (RObject) { mesh, transform, texture };
 }
 
 void ObjectManagerRender()

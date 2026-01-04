@@ -97,6 +97,14 @@ uint32_t ComputeShadedColorForTriangle(Triangle t, Vec3 light, uint32_t color)
 	return ShadeColor(color, intensity);
 }
 
+uint32_t ComputeShadedColorForNormal(Vec3 normal, Vec3 light, uint32_t color)
+{
+	float intensity = Vec3Dot(normal, light);
+	//if (intensity < 0.1f) intensity = 0.1f;
+
+	return ShadeColor(color, intensity + 0.15f);	
+}
+
 Vec3 TransformDirectionalLight(Vec3 light, Mat4 view)
 {
 	Vec4 v = { light.x, light.y, light.z, 0 };
@@ -104,7 +112,7 @@ Vec3 TransformDirectionalLight(Vec3 light, Mat4 view)
 	return Vec3Normalize((Vec3) { r.x, r.y, r.z });
 }
 
-void RenderMesh(const Mesh* mesh, Mat4 model, uint32_t color)
+void RenderMesh(const Mesh* mesh, Mat4 transform, Texture texture)
 {
 	Mat4 view = CameraGetViewMatrix(camera);
 
@@ -116,40 +124,45 @@ void RenderMesh(const Mesh* mesh, Mat4 model, uint32_t color)
 		Triangle t;
 		for (int j = 0; j < 3; j++)
 		{
-			Vec3 v = mesh->vertices[mesh->indices[i + j]];
+			Vertex v = mesh->vertices[mesh->indices[i + j]];
 
-			Vec4 v4 = { v.x, v.y, v.z, 1.0f };
-			Vec4 w0 = Mat4MulVec4(model, v4);
-			w0 = Mat4MulVec4(view, w0);
-			Vec3 worldVertex = { w0.x, w0.y, w0.z };
-			
-			// Vec3 cameraVertex = WorldToCameraView(worldVertex, *camera);
-			SetTriangleVertex(&t, j, worldVertex);
+			Vec4 v4 = { v.position.x, v.position.y, v.position.z, 1.0f };
+			Vec4 wv4 = Mat4MulVec4(transform, v4);
+			Vec4 cv4 = Mat4MulVec4(view, wv4);
+			Vec3 cameraVertex = { cv4.x, cv4.y, cv4.z };
+
+			Vec4 n4 = { v.normal.x, v.normal.y, v.normal.z, 0.0f };
+			Vec4 wn4 = Mat4MulVec4(transform, n4);
+			Vec3 worldNormal = { wn4.x, wn4.y, wn4.z };
+			worldNormal = Vec3Normalize(worldNormal);
+
+			Vertex screenVertex = { cameraVertex, worldNormal, v.u, v.v };
+
+			SetTriangleVertex(&t, j, screenVertex);
 		}
 
-		// Clipping
-		Triangle clipped[2];
-		int n = ClipTriangleNear(t, clipped);
-		
 		// Back-face culling
 		if (IsTriangleBackFacing(t))
 			continue;
-
-		uint32_t shadedColor = ComputeShadedColorForTriangle(t, transformedLightDir, color);
+		
+		// Clipping
+		Triangle clipped[2];
+		int n = ClipTriangleNear(t, clipped);
+		//uint32_t shadedColor = ComputeShadedColorForTriangle(t, transformedLightDir, color);
 		
 		// Projecting & Drawing
 		for (int j = 0; j < n; j++)
 		{
 			Triangle projected = ProjectTriangle(clipped[j]);
-
-			DrawFilledTriangle(projected, shadedColor);
+	
+			DrawFilledTriangle(projected, texture, lightDir);
 		}
 	}
 }
 
 void RenderObject(const RObject* obj)
 {
-	RenderMesh(obj->mesh, obj->transform, obj->color);
+	RenderMesh(obj->mesh, obj->transform, obj->texture);
 }
 
 

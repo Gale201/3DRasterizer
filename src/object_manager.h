@@ -11,7 +11,7 @@ void ObjectManagerInit();
 
 void AddRenderObject(RObject o);
 
-RObject CreateRenderObjectFromMesh(Mesh* mesh, Mat4 transform, uint32_t color);
+RObject CreateRenderObjectFromMesh(Mesh* mesh, Mat4 transform, Texture texture);
 
 void ObjectManagerRender();
 

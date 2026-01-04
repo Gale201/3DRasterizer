@@ -4,6 +4,11 @@
 typedef struct {
 	float x;
 	float y;
+} Vec2;
+
+typedef struct {
+	float x;
+	float y;
 	float z;
 } Vec3;
 
@@ -16,17 +21,23 @@ typedef struct {
 
 typedef struct {
 	Vec3 position;
+	Vec3 normal;
+	float u, v;
 } Vertex;
 
 typedef struct {
-	Vec3 v0;
-	Vec3 v1;
-	Vec3 v2;
+	Vertex v0;
+	Vertex v1;
+	Vertex v2;
 } Triangle;
 
 typedef struct {
 	float m[4][4];
 } Mat4;	
+
+// Basic operations
+void swap_int(int* a, int *b);
+void swap_float(float* a, float *b);
 
 // Vector operations
 Vec3 Vec3Add(Vec3 a, Vec3 b);
@@ -60,6 +71,7 @@ Mat4 Mat4RotateZ(float angle);
 Mat4 Mat4Scale(float s);
 Mat4 Mat4ScaleVec3(Vec3 v);
 
-void ProjectVertex(Vec3 v, int *x, int *y, float *z);
+Mat4 Mat4Perspective(float zNear, float zFar);
+Vertex ProjectVertex(Vertex *v);
 
 #endif

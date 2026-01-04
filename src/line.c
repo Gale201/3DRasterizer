@@ -140,3 +140,116 @@ void DrawHorizontalDepthLine(float x0, float x1, int y, float inv_z0, float inv_
 		inv_z += dinv_z;
 	}	
 }
+
+void DrawHorizontalDepthTextureLine(
+	float x0, float x1, 
+	int y, 
+	float inv_z0, float inv_z1, 
+	float u0_over_z, float u1_over_z, 
+	float v0_over_z, float v1_over_z,
+	float xn0_over_z, float xn1_over_z,
+	float yn0_over_z, float yn1_over_z,
+	float zn0_over_z, float zn1_over_z,	
+	Texture texture, Vec3 lightDir
+)
+{
+	if (y < 0 || y >= RendererGetHeight()) return;
+
+	if (x0 > x1)
+	{
+		swap_float(&x0, &x1);
+		swap_float(&inv_z0, &inv_z1);
+		swap_float(&u0_over_z, &u1_over_z);
+		swap_float(&v0_over_z, &v1_over_z);
+		swap_float(&xn0_over_z, &xn1_over_z);
+		swap_float(&yn0_over_z, &yn1_over_z);
+		swap_float(&zn0_over_z, &zn1_over_z);
+	}
+
+	float xl = x0;
+	float xr = x1;
+	float inv_zl = inv_z0;
+	float inv_zr = inv_z1;
+	float uoz_l = u0_over_z;
+	float uoz_r = u1_over_z;
+	float voz_l = v0_over_z;
+	float voz_r = v1_over_z;
+	float xnoz_l = xn0_over_z;
+	float xnoz_r = xn1_over_z;
+	float ynoz_l = yn0_over_z;
+	float ynoz_r = yn1_over_z;
+	float znoz_l = zn0_over_z;
+	float znoz_r = zn1_over_z;
+	
+	if (xl < -0.5f)
+	{
+		float t = (-0.5f - xl) / (float) (xr - xl);
+		inv_zl += t * (inv_zr - inv_zl);
+		uoz_l += t * (uoz_r - uoz_l);
+		voz_l += t * (voz_r - voz_l);
+		xnoz_l += t * (xnoz_r - xnoz_l);
+		ynoz_l += t * (ynoz_r - ynoz_l);
+		znoz_l += t * (znoz_r - znoz_l);
+		xl = -0.5f;
+	}
+	else if (xr >= RendererGetWidth() - 0.5f)
+	{
+		float t = (RendererGetWidth() - 0.5f - xl) / (float) (xr - xl);
+		inv_zr = inv_zl + t * (inv_zr - inv_zl);
+		uoz_r = uoz_l + t * (uoz_r - uoz_l);
+		voz_r = voz_l + t * (voz_r - voz_l);
+		xnoz_r = xnoz_l + t * (xnoz_r - xnoz_l);
+		ynoz_r = ynoz_l + t * (ynoz_r - ynoz_l);
+		znoz_r = znoz_l + t * (znoz_r - znoz_l);
+		xr = RendererGetWidth() - 0.5f;
+	}
+
+	int x_start = (int) ceilf(xl - 0.5f);
+	int x_end = (int) ceilf(xr - 0.5f);
+
+	float dx = xr - xl;
+	if (dx <= 1e-3f)
+	{
+		int x = (int) floorf((xl + xr) * 0.5f);
+		float inv_z = (inv_zl + inv_zr) / 2;
+		float uoz = (uoz_l + uoz_r) / (inv_z * 2);
+		float voz = (voz_l + voz_r) / (inv_z * 2);
+		float xnoz = (xnoz_l + xnoz_r) / (inv_z * 2);
+		float ynoz = (ynoz_l + ynoz_r) / (inv_z * 2);
+		float znoz = (znoz_l + znoz_r) / (inv_z * 2);
+
+		Vec3 normal = Vec3Normalize((Vec3) { xnoz, ynoz, znoz });
+		DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, GetTextureAtUV(texture, uoz, voz)));
+		return;
+	}
+
+	float dinv_z = (inv_zr - inv_zl) / dx;
+	float duoz = (uoz_r - uoz_l) / dx;
+	float dvoz = (voz_r - voz_l) / dx;
+	float dxnoz = (xnoz_r - xnoz_l) / dx;
+	float dynoz = (ynoz_r - ynoz_l) / dx;
+	float dznoz = (znoz_r - znoz_l) / dx;
+
+	float t2 = (x_start + 0.5f - xl);
+
+	float inv_z = inv_zl + t2 * dinv_z;
+	float uoz = uoz_l + t2 * duoz;
+	float voz = voz_l + t2 * dvoz;
+	float xnoz = xnoz_l + t2 * dxnoz;
+	float ynoz = ynoz_l + t2 * dynoz;
+	float znoz = znoz_l + t2 * dznoz;
+
+	for (int x = x_start; x < x_end; x++)
+	{
+		uint32_t textureColor = GetTextureAtUV(texture, uoz / inv_z, voz / inv_z);
+		Vec3 normal = Vec3Normalize((Vec3) { xnoz / inv_z, ynoz / inv_z, znoz / inv_z });
+
+		DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, textureColor));
+		inv_z += dinv_z;
+		uoz += duoz;
+		voz += dvoz;
+		xnoz += dxnoz;
+		ynoz += dynoz;
+		znoz += dznoz;
+	}	
+}

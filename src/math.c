@@ -7,6 +7,22 @@
 
 static const float fov = 1.f;
 
+// Basic operations
+
+void swap_int(int *a, int *b)
+{
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+void swap_float(float *a, float *b)
+{
+	float temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
 // Vector operations
 
 Vec3 Vec3Add(Vec3 a, Vec3 b)
@@ -209,28 +225,38 @@ Mat4 Mat4ScaleVec3(Vec3 v)
 
 // Projection
 
-void ProjectVertex(Vec3 v, int *x, int *y, float *z)
+Mat4 Mat4Perspective(float zNear, float zFar)
 {
+	float f = 1.0f / tanf(fov * 0.5f);
+
+	Mat4 m = {0};
+
 	float aspect = (float) RendererGetWidth() / (float) RendererGetHeight();
 	
-	float px = v.x / (v.z * aspect) * fov;
-	float py = v.y / v.z * fov;
+	m.m[0][0] = f / aspect;
+	m.m[1][1] = f;
+	m.m[2][2] = (zFar + zNear) / (zNear - zFar);
+	m.m[2][3] = (2.0f * zFar * zNear) / (zNear - zFar);
+	m.m[3][2] = -1.0f;
+	m.m[3][3] = 0.0f;
 
-	*x = (int) ((px + 1.0f) * 0.5f * RendererGetWidth());
-	*y = (int) ((1.0f - py) * 0.5f * RendererGetHeight());
-	*z = v.z;
+	return m;
 }
 
-int isBackface(Vec3 v0, Vec3 v1, Vec3 v2)
+Vertex ProjectVertex(Vertex *v)
 {
-	Vec3 e1 = Vec3Sub(v1, v0);
-	Vec3 e2 = Vec3Sub(v2, v0);
+	float aspect = (float) RendererGetWidth() / (float) RendererGetHeight();
+	float px = v->position.x / v->position.z / aspect;
+	float py = v->position.y / v->position.z;
 
-	Vec3 normal = Vec3Cross(e1, e2);
+	Vertex ret;
 
-	Vec3 view = { -v0.x, -v0.y, -v0.z };
-
-	return Vec3Dot(normal, view) > 0.0f;
+	ret.position.x = (px + 1.0f) * 0.5f * RendererGetWidth();
+	ret.position.y = (1.0f - py) * 0.5f * RendererGetHeight();
+	ret.position.z = v->position.z;
+	ret.u = v->u;
+	ret.v = v->v;
+	ret.normal = v->normal;
+	return ret;
 }
-
 
