@@ -86,9 +86,11 @@ static void T_FillFlatBottomTriangle(
 
 	float slope_zn1 = (zn1 - zn0) / (y1 - y0);
 	float slope_zn2 = (zn2 - zn0) / (y2 - y0);
-
+	
 	for (int y = y0; y < y1; y++)
 	{
+		if (y < 0 || y >= RendererGetHeight()) continue;
+
 		float py = y + 0.5f;
 		float dy = py - y0;
 
@@ -151,9 +153,11 @@ static void T_FillFlatTopTriangle(
 
 	float slope_zn1 = (zn2 - zn0) / (y2 - y0);
 	float slope_zn2 = (zn2 - zn1) / (y2 - y1);
-
+	
 	for (int y = y2 - 1; y >= y0; y--)
-	{	
+	{
+		if (y < 0 || y >= RendererGetHeight()) continue;
+
 		float py = y + 0.5f;
 		float dy0 = py - y0;
 		float dy1 = py - y1;
@@ -262,9 +266,9 @@ void DrawFilledTriangle(Triangle t, Texture texture, Vec3 lightDir)
 	Vec3 vn2 = Vec3Scale(t.v2.normal, 1.0f / v2.z);
 	
 	DrawFilledTriangleVertices(
-		(int) v0.x, (int) v0.y, 1.0f / v0.z, t.v0.u / v0.z, t.v0.v / v0.z, vn0.x, vn0.y, vn0.z,
-		(int) v1.x, (int) v1.y, 1.0f / v1.z, t.v1.u / v1.z, t.v1.v / v1.z, vn1.x, vn1.y, vn1.z,
-		(int) v2.x, (int) v2.y, 1.0f / v2.z, t.v2.u / v2.z, t.v2.v / v2.z, vn2.x, vn2.y, vn2.z,
+		(int) v0.x, (int) v0.y, 1.0f / v0.z, t.v0.u, t.v0.v, vn0.x, vn0.y, vn0.z,
+		(int) v1.x, (int) v1.y, 1.0f / v1.z, t.v1.u, t.v1.v, vn1.x, vn1.y, vn1.z,
+		(int) v2.x, (int) v2.y, 1.0f / v2.z, t.v2.u, t.v2.v, vn2.x, vn2.y, vn2.z,
 		texture, lightDir
 	);
     //DrawDepthTriangle((int) t.v0.x, (int) t.v0.y, 1.0f / t.v0.z, (int) t.v1.x, (int) t.v1.y, 1.0f / t.v1.z, (int) t.v2.x, (int) t.v2.y, 1.0f / t.v2.z, 0xffff0000);
@@ -327,29 +331,20 @@ int IsTriangleBackFacing(Triangle t)
 
 Vertex T_IntersectNear(Vertex a, Vertex b)
 {
-	if (fabsf(b.position.z - a.position.z) < EPSILON) return (Vertex) { a.position.x, a.position.y, NEAR_PLANE, a.u, a.v };
+	if (fabsf(b.position.z - a.position.z) < EPSILON) return (Vertex) { a.position.x, a.position.y, NEAR_PLANE, a.u / NEAR_PLANE, a.v / NEAR_PLANE };
 
 	float t = (NEAR_PLANE - a.position.z) / (b.position.z - a.position.z);
 
-	float inv_za = 1.0f / a.position.z;
-	float inv_zb = 1.0f / b.position.z;
+	float u = a.u + t * (b.u - a.u);
+	float v = a.v + t * (b.v - a.v);
 
-	float uoz_a = a.u * inv_za;
-	float voz_a = a.v * inv_za;
-	float uoz_b = b.u * inv_zb;
-	float voz_b = b.v * inv_zb;
-
-	float inv_z = inv_za + t * (inv_zb - inv_za);
-	float uoz = uoz_a + t * (uoz_b - uoz_a);
-	float voz = voz_a + t * (voz_b - voz_a);
-	
 	Vertex r;
 	r.position.x = a.position.x + t * (b.position.x - a.position.x);
 	r.position.y = a.position.y + t * (b.position.y - a.position.y);
 	r.position.z = NEAR_PLANE;
-	r.u = uoz / inv_z;
-	r.v = voz / inv_z;
-	//r.normal = 
+	r.u = u / NEAR_PLANE;
+	r.v = v / NEAR_PLANE;
+	r.normal = Vec3Add(a.normal, Vec3Scale(Vec3Sub(b.normal, a.normal), t));
 
 	return r;
 }
@@ -372,7 +367,11 @@ int ClipTriangleNear(Triangle t, Triangle out[2])
 	if (inCount == 0) return 0;
 	if (inCount == 3)
 	{
-		out[0] = t;
+		out[0] = (Triangle) {
+		   	{ { t.v0.position.x, t.v0.position.y, t.v0.position.z }, t.v0.normal, t.v0.u / t.v0.position.z, t.v0.v / t.v0.position.z},
+		   	{ { t.v1.position.x, t.v1.position.y, t.v1.position.z }, t.v1.normal, t.v1.u / t.v1.position.z, t.v1.v / t.v1.position.z},
+		   	{ { t.v2.position.x, t.v2.position.y, t.v2.position.z }, t.v2.normal, t.v2.u / t.v2.position.z, t.v2.v / t.v2.position.z}
+	   	};
 		return 1;
 	}
 	
@@ -382,6 +381,9 @@ int ClipTriangleNear(Triangle t, Triangle out[2])
 
 		Vertex i1 = T_IntersectNear(A, B);
 		Vertex i2 = T_IntersectNear(A, C);
+
+		A.u /= A.position.z;
+		A.v /= A.position.z;
 
 		out[0] = (Triangle) { A, i1, i2 };
 
@@ -393,9 +395,16 @@ int ClipTriangleNear(Triangle t, Triangle out[2])
 		Vertex A = inside[0];
 		Vertex B = inside[1];
 		Vertex C = outside[0];
+
+		Vertex a = A, b = B, c = C;
 	
 		Vertex i1 = T_IntersectNear(A, C);
 		Vertex i2 = T_IntersectNear(B, C);
+
+		A.u /= A.position.z;
+		A.v /= A.position.z;
+		B.u /= B.position.z;
+		B.v /= B.position.z;
 
 		out[0] = (Triangle) { A, B, i1 };
 		out[1] = (Triangle) { B, i2, i1 };

@@ -69,6 +69,12 @@ void DrawDepthPixel(int x, int y, float z, uint32_t color)
 	}
 }
 
+float RendererGetDepthBufferAt(int x, int y)
+{
+	if (x < 0 || x >= bufferWidth || y < 0 || y >= bufferHeight) return 0.0f;
+	return depthBuffer[y * bufferWidth + x];
+}
+
 /* Other rendering */
 
 uint32_t ShadeColor(uint32_t color, float intensity)
@@ -92,15 +98,14 @@ uint32_t ComputeShadedColorForTriangle(Triangle t, Vec3 light, uint32_t color)
 	Vec3 normal = ComputeTriangleNormal(t);
 
 	float intensity = Vec3Dot(normal, light);
-	if (intensity < 0.1f) intensity = 0.1f;	
 
-	return ShadeColor(color, intensity);
+	return ShadeColor(color, intensity + 0.15f);
 }
 
 uint32_t ComputeShadedColorForNormal(Vec3 normal, Vec3 light, uint32_t color)
 {
 	float intensity = Vec3Dot(normal, light);
-	//if (intensity < 0.1f) intensity = 0.1f;
+	if (intensity < 0.0f) intensity = 0.0f;
 
 	return ShadeColor(color, intensity + 0.15f);	
 }
@@ -148,8 +153,7 @@ void RenderMesh(const Mesh* mesh, Mat4 transform, Texture texture)
 		// Clipping
 		Triangle clipped[2];
 		int n = ClipTriangleNear(t, clipped);
-		//uint32_t shadedColor = ComputeShadedColorForTriangle(t, transformedLightDir, color);
-		
+
 		// Projecting & Drawing
 		for (int j = 0; j < n; j++)
 		{

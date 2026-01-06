@@ -1,7 +1,22 @@
+# build files
 *.exe
 *.out
+*.a
+*.dll
+*.o
+*.lib
 
+build/
+libs/
+
+# resources
+*.png
+*.obj
+
+# vim files
 *.un~
 *.c~
 *.h~
+*.obj~
 *~
+

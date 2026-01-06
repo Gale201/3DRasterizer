@@ -192,7 +192,7 @@ void DrawHorizontalDepthTextureLine(
 		znoz_l += t * (znoz_r - znoz_l);
 		xl = -0.5f;
 	}
-	else if (xr >= RendererGetWidth() - 0.5f)
+	if (xr >= RendererGetWidth() - 0.5f)
 	{
 		float t = (RendererGetWidth() - 0.5f - xl) / (float) (xr - xl);
 		inv_zr = inv_zl + t * (inv_zr - inv_zl);
@@ -212,14 +212,14 @@ void DrawHorizontalDepthTextureLine(
 	{
 		int x = (int) floorf((xl + xr) * 0.5f);
 		float inv_z = (inv_zl + inv_zr) / 2;
-		float uoz = (uoz_l + uoz_r) / (inv_z * 2);
-		float voz = (voz_l + voz_r) / (inv_z * 2);
+		float uoz = (uoz_l + uoz_r) / 2;
+		float voz = (voz_l + voz_r) / 2;
 		float xnoz = (xnoz_l + xnoz_r) / (inv_z * 2);
 		float ynoz = (ynoz_l + ynoz_r) / (inv_z * 2);
 		float znoz = (znoz_l + znoz_r) / (inv_z * 2);
 
 		Vec3 normal = Vec3Normalize((Vec3) { xnoz, ynoz, znoz });
-		DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, GetTextureAtUV(texture, uoz, voz)));
+		DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, GetTextureAtUV(texture, uoz / inv_z, voz / inv_z)));
 		return;
 	}
 
@@ -241,10 +241,14 @@ void DrawHorizontalDepthTextureLine(
 
 	for (int x = x_start; x < x_end; x++)
 	{
-		uint32_t textureColor = GetTextureAtUV(texture, uoz / inv_z, voz / inv_z);
-		Vec3 normal = Vec3Normalize((Vec3) { xnoz / inv_z, ynoz / inv_z, znoz / inv_z });
+		if (inv_z > RendererGetDepthBufferAt(x, y) + 1e-6f)
+		{
+			uint32_t textureColor = GetTextureAtUV(texture, uoz / inv_z, voz / inv_z);
+			Vec3 normal = { xnoz / inv_z, ynoz / inv_z, znoz / inv_z };
 
-		DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, textureColor));
+			DrawDepthPixel(x, y, inv_z, ComputeShadedColorForNormal(normal, lightDir, textureColor));
+		}
+
 		inv_z += dinv_z;
 		uoz += duoz;
 		voz += dvoz;

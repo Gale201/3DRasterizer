@@ -51,9 +51,14 @@ int main(int argc, char* args[])
 
 	// Loading objects & scene creation	
 	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/cube.obj"), Mat4ScaleVec3((Vec3) { 10, 0.2f, 10 }), LoadTexture("res/textures/green.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/cube.obj"), Mat4Translate(1.5f, 2, 2), LoadTexture("res/textures/red.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/chair.obj"), Mat4Translate(1, 0.12f, -1), LoadTexture("res/textures/green.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/snowman.obj"), Mat4Translate(-1, 0, 0), LoadTexture("res/textures/red.png")));
+	Mesh* mesh = LoadMeshFromObjFile("res/obj/cube.obj");
+	Texture tex = LoadTexture("res/textures/red.png");
+	for (int i = 0; i < 16 * 16 * 256; i++)
+	{
+		AddRenderObject(CreateRenderObjectFromMesh(mesh, Mat4Translate(1.5f + (i % 100) * 2, 2, 2 + i / 100 * 2), tex));
+	}
+	//AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/chair.obj"), Mat4Translate(1, 0.12f, -1), LoadTexture("res/textures/green.png")));
+	//AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/snowman.obj"), Mat4Translate(-1, 0, 0), LoadTexture("res/textures/red.png")));
 	
 	printf("Loaded objects.\n");
 

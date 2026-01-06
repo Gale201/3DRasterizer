@@ -38,17 +38,14 @@ uint32_t GetTextureAtUV(Texture texture, float u, float v)
 {
 	int tx = (int) (u * texture.width);
 	int ty = (int) (v * texture.height);
-
-	//if (tx < 0 || ty < 0 || tx > texture.width || ty > texture.height)
-		//return 0xffff00ff;
-		//printf("%f %f %d %d\n", u, v, tx, ty);
-
 	if (tx < 0) tx = 0;
 	else if (tx > texture.width - 1) tx = texture.width - 1;
 	if (ty < 0) ty = 0;
 	else if (ty > texture.height - 1) ty = texture.height - 1;
 
-	//return 0xff << 24 | ((int) (u * 255) << 16) | ((int) (v * 255) << 8);
+	uint8_t r = (uint8_t) (255.0f * u);
+	uint8_t b = (uint8_t) (255.0f * v);
+	//return 0xff << 24 | (r << 16) | b;
 
 	return texture.texture[ty * texture.width + tx];
 }

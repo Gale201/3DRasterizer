@@ -23,6 +23,16 @@ void swap_float(float *a, float *b)
 	*b = temp;
 }
 
+static inline float FastInvSqrt(float x)
+{
+	float xhalf = 0.5f * x;
+	int i = *(int*)&x;
+	i = 0x5f3759df - (i >> 1);
+	x = *(float*)&i;
+	x = x * (1.5f - xhalf * x * x);
+	return x;
+}
+
 // Vector operations
 
 Vec3 Vec3Add(Vec3 a, Vec3 b)
@@ -53,6 +63,7 @@ float Vec3Dot(Vec3 a, Vec3 b)
 Vec3 Vec3Normalize(Vec3 v)
 {
 	float length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+	//float length = FastInvSqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 	return (Vec3) { v.x / length, v.y / length, v.z / length };
 }
 

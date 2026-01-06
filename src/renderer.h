@@ -22,6 +22,7 @@ void ClearDepthBuffer(void);
 
 void DrawPixel(int x, int y, uint32_t color);
 void DrawDepthPixel(int x, int y, float z, uint32_t color);
+float RendererGetDepthBufferAt(int x, int y);
 
 uint32_t ShadeColor(uint32_t color, float intensity);
 uint32_t ComputeShadedColorForTriangle(Triangle t, Vec3 light, uint32_t color);
