@@ -50,11 +50,14 @@ int main(int argc, char* args[])
 	WindowCreateCanvas();
 
 	// Loading objects & scene creation	
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/cube.obj"), Mat4ScaleVec3((Vec3) { 10, 0.2f, 10 }), LoadTexture("res/textures/green.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/cube.obj"), Mat4Translate(1.5f, 2, 2), LoadTexture("res/textures/red.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/chair.obj"), Mat4Translate(1, 0.12f, -1), LoadTexture("res/textures/green.png")));
-	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj/snowman.obj"), Mat4Translate(-1, 0, 0), LoadTexture("res/textures/red.png")));
-	
+	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj-examples/cube.obj"), Mat4ScaleVec3((Vec3) { 10, 0.2f, 10 }), LoadTexture("res/texture-examples/green.png")));
+	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj-examples/cube.obj"), Mat4Translate(1.5f, 2, 2), LoadTexture("res/texture-examples/red.png")));
+
+	#ifdef HAS_BIG_OBJ_FILES
+	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj-examples/chair.obj"), Mat4Translate(1, 0.12f, -1), LoadTexture("res/texture-examples/green.png")));
+	AddRenderObject(CreateRenderObjectFromMesh(LoadMeshFromObjFile("res/obj-examples/snowman.obj"), Mat4Translate(-1, 0, 0), LoadTexture("res/texture-examples/red.png")));
+	#endif
+
 	printf("Loaded objects.\n");
 
 	RendererSetLightDir(Vec3Normalize((Vec3) { 0, 1.5, -1 }));

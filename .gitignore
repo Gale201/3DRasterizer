@@ -10,8 +10,8 @@ build/
 libs/
 
 # resources
-*.png
-*.obj
+res/textures/*.png
+res/obj/*.obj
 
 # vim files
 *.un~
